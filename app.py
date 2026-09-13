@@ -82,7 +82,7 @@ def generar_recomendaciones_masivas(df_cruce_global, api_key):
         {resumen_curso}
         """
 
-        response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+        response = client.models.generate_content(model="gemini-3.6-flash", contents=prompt)
         bloques = response.text.strip().split("---ESTUDIANTE:")
         
         for bloque in bloques:
