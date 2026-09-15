@@ -17,7 +17,7 @@ import os
 from google.colab import files
 
 # Instalar ReportLab si no está presente
-!pip install reportlab
+# !pip install reportlab
 
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, KeepTogether
