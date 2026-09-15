@@ -9,6 +9,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, KeepTogether
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
+from reportlab.pdfgen import canvas
 
 # Configuración de la página web
 st.set_page_config(page_title="Sistema SIMCE - Informes Escolares", page_icon="📊", layout="centered")
@@ -31,6 +32,42 @@ with col2:
     archivo_resp = st.file_uploader("2. Respuestas de Estudiantes", type=["txt", "csv"])
 
 formato_opcion = st.selectbox("Selecciona el formato de respuestas:", ["Formato Vertical (ZipGrade)", "Formato Horizontal (Google Forms)"])
+
+# --- FUNCIONES DE ENCABEZADO Y PIE DE PÁGINA (CANVAS) ---
+def agregar_encabezado_pie(canvas_obj, doc):
+    canvas_obj.saveState()
+    
+    # Dimensiones de la página
+    width, height = doc.pagesize
+    
+    # --- ENCABEZADO ---
+    canvas_obj.setFont("Helvetica-Bold", 9)
+    canvas_obj.setFillColor(colors.HexColor('#2c3e50'))
+    canvas_obj.drawString(36, height - 25, "SISTEMA DE EVALUACIÓN DIAGNÓSTICA SIMCE")
+    
+    canvas_obj.setFont("Helvetica", 8)
+    canvas_obj.setFillColor(colors.HexColor('#7f8c8d'))
+    canvas_obj.drawRightString(width - 36, height - 25, "Informe de Retroalimentación Pedagógica")
+    
+    # Línea separadora del encabezado
+    canvas_obj.setStrokeColor(colors.HexColor('#bdc3c7'))
+    canvas_obj.setLineWidth(0.5)
+    canvas_obj.line(36, height - 30, width - 36, height - 30)
+    
+    # --- PIE DE PÁGINA ---
+    # Línea separadora del pie de página
+    canvas_obj.line(36, 40, width - 36, 40)
+    
+    canvas_obj.setFont("Helvetica", 8)
+    canvas_obj.setFillColor(colors.HexColor('#7f8c8d'))
+    canvas_obj.drawString(36, 25, "Documento confidencial - Uso interno pedagógico")
+    
+    # Numeración de páginas
+    page_num = canvas_obj.getPageNumber()
+    canvas_obj.drawRightString(width - 36, 25, f"Página {page_num}")
+    
+    canvas_obj.restoreState()
+
 
 # Función de respaldo inteligente
 def generar_recomendacion_respaldo(correctas, incorrectas, subtotales_eje):
@@ -74,7 +111,7 @@ def generar_recomendaciones_masivas(df_cruce_global, api_key):
         Para CADA estudiante, redacta una retroalimentación pedagógica motivadora y breve (máximo 2 párrafos) con su desempeño y consejos de estudio.
 
         FORMATO OBLIGATORIO: 
-        Responde estrictamente usando este formato de separación por líneas, sin markdown extra:
+        Responde strictly usando este formato de separación por líneas, sin markdown extra:
         ---ESTUDIANTE: [ID_DEL_ESTUDIANTE]---
         [Texto de la recomendación]
 
@@ -141,7 +178,18 @@ if st.button("🚀 Procesar Curso y Generar Informes PDF", type="primary"):
                 diccionario_ia = generar_recomendaciones_masivas(df_cruce, api_key_input)
 
                 pdf_output_path = "1_Reporte_Detallado_Estudiantes.pdf"
-                doc1 = SimpleDocTemplate(pdf_output_path, pagesize=letter, leftMargin=36, rightMargin=36, topMargin=36, bottomMargin=36)
+                
+                # SE INCREMENTARON LOS MÁRGENES SUPERIOR E INFERIOR (topMargin=54, bottomMargin=54)
+                # PARA QUE EL CONTENIDO NO TRASLAPE CON EL ENCABEZADO Y PIE DE PÁGINA
+                doc1 = SimpleDocTemplate(
+                    pdf_output_path, 
+                    pagesize=letter, 
+                    leftMargin=36, 
+                    rightMargin=36, 
+                    topMargin=54, 
+                    bottomMargin=54
+                )
+                
                 story1 = []
                 styles = getSampleStyleSheet()
 
@@ -217,7 +265,12 @@ if st.button("🚀 Procesar Curso y Generar Informes PDF", type="primary"):
                     if idx < len(estudiantes) - 1:
                         story1.append(PageBreak())
 
-                doc1.build(story1)
+                # AQUÍ SE VINCULA LA FUNCIÓN DE ENCABEZADO Y PIE
+                doc1.build(
+                    story1, 
+                    onFirstPage=agregar_encabezado_pie, 
+                    onLaterPages=agregar_encabezado_pie
+                )
                 
                 st.success("¡Informes generados exitosamente!")
                 
