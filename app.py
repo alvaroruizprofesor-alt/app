@@ -43,7 +43,7 @@ def agregar_encabezado_pie(canvas_obj, doc):
     # --- ENCABEZADO ---
     canvas_obj.setFont("Helvetica-Bold", 9)
     canvas_obj.setFillColor(colors.HexColor('#2c3e50'))
-    canvas_obj.drawString(36, height - 25, "SISTEMA DE EVALUACIÓN DIAGNÓSTICA SIMCE")
+    canvas_obj.drawString(36, height - 25, " @profealvaro.cl SISTEMA DE EVALUACIÓN DIAGNÓSTICA SIMCE")
     
     canvas_obj.setFont("Helvetica", 8)
     canvas_obj.setFillColor(colors.HexColor('#7f8c8d'))
